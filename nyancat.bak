@@ -6,19 +6,19 @@
 
 (define WIDTH 500)
 (define HEIGHT 500)
-(define BG-COLOUR "Medium Blue")
+(define BG-COLOUR "blue")
 (define X-POS (/ WIDTH 2))
 (define Y-POS (/ HEIGHT 2))
 
-(define RAINBOW-WIDTH 23)
-(define RAINBOW-HEIGHT 8)
+(define RAINBOW-WIDTH 10)
+(define RAINBOW-HEIGHT 6)
 (define RAINBOW-IMAGE (above
                        (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "red")
                        (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "orange")
                        (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "yellow")
                        (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "green")
-                       (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "RoyalBlue")
-                       (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "Medium Orchid")))
+                       (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "blue")
+                       (rectangle RAINBOW-WIDTH RAINBOW-HEIGHT "solid" "purple")))
 
 
 
@@ -71,23 +71,14 @@
 
               
 (define POPTART
-  (overlay (rectangle 55 40 "solid" "pink")
-           (rectangle 70 50 "solid" "tan")))
+  (overlay (rectangle 70 50 "solid" "pink")
+           (rectangle 55 40 "solid" "tan")))
 (define HEAD
   (ellipse 40 35 "solid" "gray"))
 (define NYAN_BASIC
   (overlay/offset HEAD -20 -10 POPTART))
 
-(define NYAN_EYE
-  (place-image (circle 2 "solid" "black")
-               55 30
-               (place-image
-                (circle 2 "solid" "black")
-                65 30
-                NYAN_BASIC)))
-                        
-
-(define NYANLIST_BASIC (list NYAN_BASIC NYAN_EYE))
+(define NYANLIST_BASIC (list NYAN_BASIC NYAN_BASIC))
 
 (define DEFAULT-NYAN (make-nyan 0 X-POS Y-POS NYANLIST_BASIC))
 
@@ -96,17 +87,11 @@
 (define (generate-rainbows w)
   (map
    (lambda (n)
-     (make-rainbow (* (stagger n) 1.5)
+     (make-rainbow (+ (modulo n 3) (/ 5 RAINBOW-WIDTH))
                    (- X-POS n)
                    Y-POS))
-  (build-list (ceiling (/ w RAINBOW-WIDTH))
+  (build-list (/ w RAINBOW-WIDTH)
   (lambda (n) (* n RAINBOW-WIDTH)))))
-
-
-(define (stagger x)
-  (if (odd? x)
-      -1
-      1))
 
 (define start
   (make-nyanstate
@@ -141,7 +126,7 @@
 (define (tock-nyan nyan)
   (make-nyan (modulo
               (add1 (nyan-frame nyan))
-              (length (nyan-lonf nyan)))
+              (sub1 (length (nyan-lonf nyan))))
              (nyan-x nyan)
              (nyan-y nyan)
              (nyan-lonf nyan)))
@@ -152,18 +137,10 @@
       (cons (tock-rainbow--one (first rb))
             (tock-rainbow (rest rb)))))
 
-(define (tock-rainbow--one rb)
-       (make-rainbow
-        (* -1 (rainbow-delta rb))
-        (rainbow-x rb)
-        (rainbow-y rb)))
-
 ;; !!! do some shit to make this a sine wave
-#; ;; turns out sine waves look terrible
 (define (tock-rainbow--one rb)
   (make-rainbow
-   (* (sin (* 2 pi (rainbow-delta rb))) 2)
-      ;; need each piece to keep track
+   (sin (* 2 pi )) ;; need each piece to keep track
    (rainbow-x rb)
    (rainbow-y rb))
   )
@@ -208,81 +185,6 @@
   BACKGROUND)
 
 (define (handle-key ns keyev)
-  (cond [(string=? keyev "down")
-         (handle-down ns)]
-        [(string=? keyev "up")
-          (handle-up ns)]
-        [(string=? keyev "right") (handle-right ns)]
-        [(string=? keyev "left") (handle-left ns)]
-        [else ns]))
-
-(define SPEED 5)
-
-;; refactor for abstraction
-(define (handle-up ns)
-  (handle-y ns (* -1 SPEED)))
-
-(define (handle-down ns)
-  (handle-y ns SPEED))
-
-(define (handle-right ns)
-  (handle-x ns SPEED))
-
-(define (handle-left ns)
-  (handle-x ns (* -1 SPEED)))
+  ns)
   
-(define (handle-y ns movement)
-  (make-nyanstate
-   (move-nyan-y (nyanstate-nyan ns) movement)
-   (move-rainbow-y (nyanstate-lor ns) movement)
-   (nyanstate-bg ns)
-   (nyanstate-score ns)
-   (nyanstate-sound ns)))
-
-
-(define (move-nyan-y nyan movement)
-  (make-nyan (nyan-frame nyan)
-             (nyan-x nyan)
-             (+ movement (nyan-y nyan))
-             (nyan-lonf nyan)))
-
-(define (move-rainbow-y lor movement)
-  (if (empty? lor)
-      empty
-      (cons (move-rainbow-y--piece (first lor) movement)
-                                   (move-rainbow-y (rest lor) movement))))
-
-(define (move-rainbow-y--piece r movement)
-  (make-rainbow
-   (rainbow-delta r)
-   (rainbow-x r)
-   (+ (rainbow-y r) movement)))
-
-
-(define (handle-x ns movement)
-  (make-nyanstate
-   (move-nyan-x (nyanstate-nyan ns) movement)
-   (move-rainbow-x (nyanstate-lor ns) movement)
-   (nyanstate-bg ns)
-   (nyanstate-score ns)
-   (nyanstate-sound ns)))
-
-(define (move-nyan-x nyan movement)
-  (make-nyan (nyan-frame nyan)
-             (+ movement (nyan-x nyan))
-             (nyan-y nyan)
-             (nyan-lonf nyan)))
-
-(define (move-rainbow-x lor movement)
-  (if (empty? lor)
-      empty
-      (cons (move-rainbow-x--piece (first lor) movement)
-                                   (move-rainbow-x (rest lor) movement))))
-
-(define (move-rainbow-x--piece r movement)
-  (make-rainbow
-   (rainbow-delta r)
-   (+ (rainbow-x r) movement)
-   (rainbow-y r)))
-
-(main start)
+                  
